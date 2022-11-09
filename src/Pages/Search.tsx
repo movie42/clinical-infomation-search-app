@@ -11,11 +11,12 @@ interface SickProps {
 }
 
 const Search = () => {
-  const [searchIndex, setSearchIndex] = useState<number | null>(null);
+  const ulRef = useRef<HTMLUListElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const [isKeySearch, setIsKeySearch] = useState(false);
   const { query, setQuery, data } = useGetQuery<SickProps[]>();
+  const [searchIndex, setSearchIndex] = useState<number>(-1);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isKeySearch) {
@@ -51,28 +52,41 @@ const Search = () => {
     }
   };
 
+  const handleIncreseCount = (endIndex: number) => (pre: number) => {
+    return (pre === -1 ? pre + endIndex : pre + 1) % endIndex;
+  };
+
+  const handleDecreseCount = (startIndex: number) => (pre: number) => {
+    return ((pre < 0 ? 0 : pre) - 1 + startIndex) % startIndex;
+  };
+
+  const handleEscape = (e: KeyboardEvent) => {
+    const listEndIndex = data ? data?.length : 0;
+
+    if (!searchInputRef.current) {
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      setSearchIndex(handleDecreseCount(listEndIndex));
+    }
+
+    if (e.key === "ArrowDown") {
+      setSearchIndex(handleIncreseCount(listEndIndex));
+    }
+
+    if (e.key === "Escape") {
+      searchInputRef.current?.focus();
+      setSearchIndex(-1);
+      setIsKeySearch(false);
+    }
+  };
+
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (!searchInputRef.current) {
-        return;
-      }
-      if (e.key === "ArrowUp") {
-        setSearchIndex((pre) => (pre !== null ? pre - 1 : 0));
-      }
-      if (e.key === "ArrowDown") {
-        setSearchIndex((pre) => (pre !== null ? pre + 1 : 0));
-      }
-      if (e.key === "Escape") {
-        if (searchInputRef) {
-          searchInputRef.current?.focus();
-        }
-        setIsKeySearch(false);
-      }
-    };
     window.addEventListener("keydown", handleEscape);
 
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [searchInputRef]);
+  }, [searchInputRef, handleEscape, searchIndex]);
 
   return (
     <Container>
@@ -100,7 +114,7 @@ const Search = () => {
           {data?.length !== 0 ? (
             <>
               <p>추천 검색어</p>
-              <ul>
+              <ul ref={ulRef}>
                 {data?.map((value, index) => (
                   <SearchItem
                     isSelect={index === searchIndex}
@@ -185,26 +199,32 @@ const Button = styled.button`
 `;
 
 const SearchingResultContainer = styled.div`
+  position: relative;
   font-size: 1.7rem;
   box-sizing: border-box;
   justify-self: center;
   border-radius: 3rem;
   width: 100%;
-  overflow-y: auto;
-  height: 100%;
-  max-height: 45vh;
   max-width: 49rem;
   background-color: ${(props) => props.theme.color.white};
   margin-top: 1rem;
+  height: 100%;
+  max-height: 45vh;
+  overflow: hidden;
   p {
     padding: 2rem 0 0 5rem;
     font-size: 1.4rem;
     color: ${(props) => props.theme.color.gray};
   }
   ul {
+    position: absolute;
+    top: 3rem;
+    left: 0;
+    right: 0;
+    height: 100%;
+    max-height: 45vh;
     padding: 1rem 0;
     line-height: 4rem;
-    li {
-    }
+    overflow-y: auto;
   }
 `;
