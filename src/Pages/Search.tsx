@@ -17,6 +17,9 @@ const Search = () => {
   const { query, setQuery, data } = useGetQuery<SickProps[]>();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isKeySearch) {
+      return;
+    }
     setQuery(e.currentTarget.value);
   };
 
@@ -26,34 +29,41 @@ const Search = () => {
       navigate(`/sick?q=${query}`);
     }
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!e.currentTarget.value) {
+      setIsKeySearch(false);
+      return;
+    }
+    if (data?.length === 0) {
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      setIsKeySearch(true);
+
+      e.currentTarget.blur();
+    }
+
+    if (e.key === "ArrowDown") {
+      setIsKeySearch(true);
+      e.currentTarget.blur();
+    }
+  };
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!searchInputRef.current) {
-        return;
-      }
-
-      if (!query) {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (searchInputRef) {
+          searchInputRef.current?.focus();
+        }
         setIsKeySearch(false);
-        return;
-      }
-
-      if (data?.length === 0) {
-        return;
-      }
-
-      if (e.key === "ArrowUp") {
-        setIsKeySearch(true);
-      }
-
-      if (e.key === "ArrowDown") {
-        setIsKeySearch(true);
       }
     };
+    window.addEventListener("keydown", handleEscape);
 
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [searchInputRef, query, data]);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [searchInputRef]);
 
   return (
     <Container>
@@ -66,6 +76,7 @@ const Search = () => {
               <Input
                 placeholder="어떤 임상시험을 찾으시나요?"
                 type="text"
+                onKeyDown={handleKeyDown}
                 onChange={handleSearch}
                 value={query}
                 ref={searchInputRef}
