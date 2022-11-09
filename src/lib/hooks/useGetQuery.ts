@@ -11,7 +11,6 @@ const useGetQuery = <TData>() => {
 
   const getData = async (query: string) => {
     const { data } = await api.fetch(`/sick?q=${query}`, query);
-
     setData(data);
   };
 
