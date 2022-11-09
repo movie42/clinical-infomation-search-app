@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../api/api";
 
-const instance = axios.create({ baseURL: "http://localhost:4000" });
+const instance = axios.create({
+  baseURL: "http://localhost:4000"
+});
 const api = new API(instance);
 
 const useGetQuery = <TData>() => {

@@ -1,13 +1,14 @@
 import React from "react";
 import { AiOutlineSearch } from "react-icons/ai";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 interface ISearchItemProps {
+  isSelect: boolean;
   queryString: string;
   search: string;
 }
 
-const SearchItem = ({ queryString, search }: ISearchItemProps) => {
+const SearchItem = ({ queryString, search, isSelect }: ISearchItemProps) => {
   const strong = (queryString: string, search: string): JSX.Element => {
     const matchString = search.split(new RegExp(`(${queryString})`, "gi"));
 
@@ -24,7 +25,7 @@ const SearchItem = ({ queryString, search }: ISearchItemProps) => {
     );
   };
   return (
-    <Container>
+    <Container isSelect={isSelect}>
       <SearchIcon />
       <span>{strong(queryString, search)}</span>
     </Container>
@@ -33,11 +34,21 @@ const SearchItem = ({ queryString, search }: ISearchItemProps) => {
 
 export default SearchItem;
 
-const Container = styled.li`
+const Container = styled.li<{ isSelect: boolean }>`
   position: relative;
   padding-left: 5rem;
   font-size: 1.7rem;
   color: ${(props) => props.theme.color.black};
+  ${({ isSelect }) => {
+    if (isSelect) {
+      return css`
+        background-color: ${(props) => props.theme.color.second};
+      `;
+    }
+    return css`
+      background-color: unset;
+    `;
+  }}
   span {
     font-weight: 400;
   }

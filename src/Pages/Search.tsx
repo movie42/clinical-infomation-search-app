@@ -1,7 +1,7 @@
 import useGetQuery from "@/lib/hooks/useGetQuery";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { AiOutlineSearch } from "react-icons/ai";
 import { SearchItem } from "@/Components/SearhItem";
 
@@ -11,6 +11,7 @@ interface SickProps {
 }
 
 const Search = () => {
+  const [searchIndex, setSearchIndex] = useState<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const [isKeySearch, setIsKeySearch] = useState(false);
@@ -41,7 +42,6 @@ const Search = () => {
 
     if (e.key === "ArrowUp") {
       setIsKeySearch(true);
-
       e.currentTarget.blur();
     }
 
@@ -53,6 +53,15 @@ const Search = () => {
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
+      if (!searchInputRef.current) {
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        setSearchIndex((pre) => (pre !== null ? pre - 1 : 0));
+      }
+      if (e.key === "ArrowDown") {
+        setSearchIndex((pre) => (pre !== null ? pre + 1 : 0));
+      }
       if (e.key === "Escape") {
         if (searchInputRef) {
           searchInputRef.current?.focus();
@@ -87,13 +96,14 @@ const Search = () => {
         </FormContainer>
       </Headers>
       {query && (
-        <SearchingResultContainer isKeySearch={isKeySearch}>
+        <SearchingResultContainer>
           {data?.length !== 0 ? (
             <>
               <p>추천 검색어</p>
               <ul>
-                {data?.map((value) => (
+                {data?.map((value, index) => (
                   <SearchItem
+                    isSelect={index === searchIndex}
                     key={value.sickCd}
                     search={value.sickNm}
                     queryString={query}
@@ -174,7 +184,7 @@ const Button = styled.button`
   border-radius: 0 3rem 3rem 0;
 `;
 
-const SearchingResultContainer = styled.div<{ isKeySearch: boolean }>`
+const SearchingResultContainer = styled.div`
   font-size: 1.7rem;
   box-sizing: border-box;
   justify-self: center;
@@ -195,14 +205,6 @@ const SearchingResultContainer = styled.div<{ isKeySearch: boolean }>`
     padding: 1rem 0;
     line-height: 4rem;
     li {
-      ${({ isKeySearch, theme }) => {
-        if (isKeySearch) {
-          return css`
-            background-color: ${theme.color.second};
-            color: ${theme.color.white};
-          `;
-        }
-      }}
     }
   }
 `;
