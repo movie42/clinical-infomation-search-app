@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { highlightString } from "@/lib/utils/highlightString";
 import { AiOutlineSearch } from "react-icons/ai";
 import styled, { css } from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 interface ISearchItemProps {
   isSelect: boolean;
@@ -9,25 +11,26 @@ interface ISearchItemProps {
 }
 
 const SearchItem = ({ queryString, search, isSelect }: ISearchItemProps) => {
-  const strong = (queryString: string, search: string): JSX.Element => {
-    const matchString = search.split(new RegExp(`(${queryString})`, "gi"));
+  const navigate = useNavigate();
 
-    return (
-      <>
-        {matchString.map((string, index) => {
-          return string === queryString ? (
-            <strong key={index}>{string}</strong>
-          ) : (
-            <span key={index}>{string}</span>
-          );
-        })}
-      </>
-    );
-  };
+  useEffect(() => {
+    const enterSearchStringToUrl = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        navigate(`/sick?q=${search}`);
+      }
+    };
+
+    if (isSelect) {
+      window.addEventListener("keydown", enterSearchStringToUrl);
+    }
+
+    return () => window.removeEventListener("keydown", enterSearchStringToUrl);
+  }, [isSelect, search]);
+
   return (
     <Container isSelect={isSelect}>
       <SearchIcon />
-      <span>{strong(queryString, search)}</span>
+      <span>{highlightString(queryString, search)}</span>
     </Container>
   );
 };
